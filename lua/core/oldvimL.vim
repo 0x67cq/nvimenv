@@ -2,7 +2,9 @@
 " =====文件=====
 " 设置编码格式
 set encoding=utf-8
-set termencoding=utf-8
+if !has('nvim')
+  set termencoding=utf-8
+endif
 
 " 文件修改自动载入
 set autoread
