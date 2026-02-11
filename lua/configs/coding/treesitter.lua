@@ -6,7 +6,22 @@ end
 configs.setup({
 	--[[ ensure_installed = "all", -- one of "all", "maintained" (parsers with maintainers), or a list of languages ]]
 	-- ensure_installed = {"vim", "javascript", "typescript", "tsx"},
-	ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "bash", "go", "rust", "python" },
+	ensure_installed = {
+		"c",
+		"lua",
+		"vim",
+		"vimdoc",
+		"query",
+		"bash",
+		"go",
+		"rust",
+		"python",
+		"svelte",
+		"javascript",
+		"typescript",
+		"html",
+		"css",
+	},
 	sync_install = true, -- install languages synchronously (only applied to `ensure_installed`)
 	autopairs = {
 		enable = true,
@@ -70,4 +85,3 @@ vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
 -- 默认不要折叠
 -- https://stackoverflow.com/questions/8316139/how-to-set-the-default-to-unfolded-when-you-open-a-file
 vim.opt.foldlevel = 99
-

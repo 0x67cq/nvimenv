@@ -229,6 +229,10 @@ local plugins = {
 		"williamboman/mason.nvim",
 		config = require("plugins.coding.mason").setup(),
 	},
+	{
+		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		after = "mason.nvim",
+	},
 	-- 函数参数浮框显示
 	{
 		"ray-x/lsp_signature.nvim",

@@ -102,11 +102,39 @@ function M.setup()
 
 	mason.setup(DEFAULT_SETTINGS) -- 假设 DEFAULT_SETTINGS 在你文件上方已定义
 
-	local servers = { "clangd", "gopls", "lua_ls", "bashls", "rust_analyzer" }
+	local servers = {
+		"clangd",
+		"gopls",
+		"lua_ls",
+		"bashls",
+		"rust_analyzer",
+		"svelte",
+		"html", -- html-lsp
+		"cssls", -- css-lsp
+		"ts_ls", -- typescript-language-server (Svelte 强依赖 TS)
+	}
 
 	mason_lspconfig.setup({
 		ensure_installed = servers,
+		automatic_installation = true,
 	})
+
+	local has_installer, tool_installer = pcall(require, "mason-tool-installer")
+	if has_installer then
+		tool_installer.setup({
+			ensure_installed = {
+				-- Formatters (配合 null-ls 使用)
+				"prettier", -- Svelte/JS/HTML 格式化神器
+				"goimports", -- Go 导入整理
+
+				-- DAP Debuggers (调试器)
+				"delve", -- Go debugger
+				-- "codelldb", -- C/C++ debugger
+			},
+			auto_update = true,
+			run_on_start = true,
+		})
+	end
 
 	-- 2. 准备 Capabilities (代码补全能力)
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
