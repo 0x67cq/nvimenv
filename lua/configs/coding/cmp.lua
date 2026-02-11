@@ -1,151 +1,132 @@
-local cmp_status_ok, cmp = pcall(require, "cmp")
-if not cmp_status_ok then
+local status_ok, cmp = pcall(require, "cmp")
+if not status_ok then
 	return
 end
 
--- hlcolor set
-vim.opt.completeopt = { "menu", "menuone", "noselect" }
--- gray
-vim.api.nvim_set_hl(0, "CmpItemAbbrDeprecated", { bg = "NONE", strikethrough = true, fg = "#928374" })
--- blue
-vim.api.nvim_set_hl(0, "CmpItemAbbrMatch", { bg = "NONE", fg = "#b16286" })
-vim.api.nvim_set_hl(0, "CmpItemAbbrMatchFuzzy", { link = "CmpIntemAbbrMatch" })
--- light blue
-vim.api.nvim_set_hl(0, "CmpItemKindVariable", { bg = "NONE", fg = "#98971a" })
-vim.api.nvim_set_hl(0, "CmpItemKindInterface", { link = "CmpItemKindVariable" })
-vim.api.nvim_set_hl(0, "CmpItemKindText", { link = "CmpItemKindVariable" })
--- pink
-vim.api.nvim_set_hl(0, "CmpItemKindFunction", { bg = "NONE", fg = "#458588" })
-vim.api.nvim_set_hl(0, "CmpItemKindMethod", { link = "CmpItemKindFunction" })
--- front
-vim.api.nvim_set_hl(0, "CmpItemKindKeyword", { bg = "NONE", fg = "#b57614" })
-vim.api.nvim_set_hl(0, "CmpItemKindProperty", { link = "CmpItemKindKeyword" })
-vim.api.nvim_set_hl(0, "CmpItemKindUnit", { link = "CmpItemKindKeyword" })
-
-local m = {
-	select_prev_item = "<C-p>",
-	select_next_item = "<C-n>",
-	scroll_docs_up = "<C-b>",
-	scroll_docs_down = "<C-f>",
-	show_complete = "<C-Space>",
-	disbale = "<C-y>",
-	close = "<C-e>",
-	select = "<TAB>",
-}
-
-local check_backspace = function()
-	local col = vim.fn.col(".") - 1
-	return col == 0 or vim.fn.getline("."):sub(col, col):match("%s")
+local snip_status_ok, luasnip = pcall(require, "luasnip")
+if not snip_status_ok then
+	return
 end
 
---   פּ ﯟ   some other good icons
-local kind_icons = {
-	Text = "",
-	Method = "m",
-	Function = "",
-	Constructor = "",
-	Field = "",
-	Variable = "",
-	Class = "",
-	Interface = "",
-	Module = "",
-	Property = "",
-	Unit = "",
-	Value = "",
-	Enum = "",
-	Keyword = "",
-	Snippet = "",
-	Color = "",
-	File = "",
-	Reference = "",
-	Folder = "",
-	EnumMember = "",
-	Constant = "",
-	Struct = "",
-	Event = "",
-	Operator = "",
-	TypeParameter = "",
-}
--- find more here: https://www.nerdfonts.com/cheat-sheet
+-- [图标插件] 用于给补全列表加图标
+local lspkind_status_ok, lspkind = pcall(require, "lspkind")
+-- 建议确保 lspkind 已安装，否则补全列表会很丑
 
 cmp.setup({
+	-- [1] 片段引擎 (必须配置)
 	snippet = {
 		expand = function(args)
-			require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
+			luasnip.lsp_expand(args.body)
 		end,
 	},
+
+	-- [2] 窗口样式 (加个边框更好看)
+	window = {
+		completion = cmp.config.window.bordered(),
+		documentation = cmp.config.window.bordered(),
+	},
+
+	-- [3] 按键映射
 	mapping = cmp.mapping.preset.insert({
-		["C-p"] = cmp.mapping(cmp.mapping.select_prev_item(), { "i", "c" }),
-		["C-n"] = cmp.mapping(cmp.mapping.select_next_item(), { "i", "c" }),
-		["C-b"] = cmp.mapping(cmp.mapping.scroll_docs(-1), { "i", "c" }),
-		["C-d"] = cmp.mapping(cmp.mapping.scroll_docs(1), { "i", "c" }),
-		["<Enter>"] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Insert, select = true }),
-		["<Tab>"] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+		-- 上下选择
+		["<C-n>"] = cmp.mapping.select_next_item(),
+		["<C-p>"] = cmp.mapping.select_prev_item(),
+
+		-- 滚动文档 (比如看函数参数很长)
+		["<C-b>"] = cmp.mapping.scroll_docs(-4),
+		["<C-f>"] = cmp.mapping.scroll_docs(4),
+
+		-- 显示补全菜单 (手动触发)
+		["<C-Space>"] = cmp.mapping.complete(),
+
+		-- 取消补全
+		["<C-e>"] = cmp.mapping.abort(),
+
+		-- [确认选择]
+		-- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+		["<CR>"] = cmp.mapping.confirm({ select = true }),
+
+		-- [Tab 键逻辑]
+		-- 很多现代配置喜欢用 Tab 选下一个，如果你习惯 Tab 确认，可以用上面的 confirm 逻辑
+		["<Tab>"] = cmp.mapping(function(fallback)
+			if cmp.visible() then
+				cmp.select_next_item()
+			elseif luasnip.expand_or_jumpable() then
+				luasnip.expand_or_jump()
+			else
+				fallback()
+			end
+		end, { "i", "s" }),
+
+		["<S-Tab>"] = cmp.mapping(function(fallback)
+			if cmp.visible() then
+				cmp.select_prev_item()
+			elseif luasnip.jumpable(-1) then
+				luasnip.jump(-1)
+			else
+				fallback()
+			end
+		end, { "i", "s" }),
 	}),
 
-	view = {
-		entries = "custom", -- can be "custom", "wildmenu" or "native"
-	},
+	-- [4] 格式化 (外观)
 	formatting = {
-		format = function(entry, vim_item)
-			local lspkind_ok, lspkind = pcall(require, "lspkind")
-			if lspkind_ok then
-				-- From kind_icons array
-				vim_item.kind = string.format("%s %s", kind_icons[vim_item.kind], vim_item.kind) -- This concatonates the icons with the name of the item kind
-				-- Source
-				vim_item.menu = ({
-					buffer = "[Buffer]",
-					nvim_lsp = "[LSP]",
-					luasnip = "[LuaSnip]",
-					nvim_lua = "[Lua]",
-					latex_symbols = "[LaTeX]",
-				})[entry.source.name]
-				return vim_item
-			else
-				-- From lspkind
-				return lspkind.cmp_format()
-			end
-		end,
+		expandable_indicator = true,
+		fields = { "kind", "abbr", "menu" }, -- 图标, 文本, 来源
+		format = lspkind_status_ok
+				and lspkind.cmp_format({
+					mode = "symbol_text", -- 显示 图标 + 文字
+					maxwidth = 50,
+					ellipsis_char = "...",
+					menu = {
+						nvim_lsp = "[LSP]",
+						luasnip = "[Snip]",
+						buffer = "[Buf]",
+						path = "[Path]",
+					},
+				})
+			or nil, -- 如果没装 lspkind 就用默认的
 	},
-	sources = {
-		{ name = "nvim_lsp" },
-		{ name = "luasnip" },
-		{ name = "buffer" },
-		{ name = "path" },
+
+	-- [5] 补全源 (顺序决定优先级)
+	sources = cmp.config.sources({
+		{ name = "nvim_lsp" }, -- 语言服务
+		{ name = "luasnip" }, -- 代码片段
+	}, {
+		{ name = "buffer" }, -- 当前文件文字
+		{ name = "path" }, -- 文件路径
+	}),
+
+	-- [6] 实验性功能: 幽灵文字
+	-- 当你打字时，后面会显示灰色的预测文字
+	experimental = {
+		ghost_text = true,
 	},
 })
 
--- Set configuration for specific filetype.
+-- [Git] 针对 git commit 启用特定源
 cmp.setup.filetype("gitcommit", {
 	sources = cmp.config.sources({
-		{ name = "git" }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
+		{ name = "git" },
 	}, {
 		{ name = "buffer" },
 	}),
 })
 
--- / 查找模式使用 buffer 源
+-- [Cmdline] 查找模式 /
 cmp.setup.cmdline({ "/", "?" }, {
 	mapping = cmp.mapping.preset.cmdline(),
-
 	sources = {
 		{ name = "buffer" },
 	},
-	view = {
-		entries = { name = "custom", selection_order = "near_cursor" },
-	},
 })
 
--- : 命令行模式中使用 path 和 cmdline 源.
+-- [Cmdline] 命令模式 :
 cmp.setup.cmdline(":", {
 	mapping = cmp.mapping.preset.cmdline(),
-
 	sources = cmp.config.sources({
 		{ name = "path" },
 	}, {
 		{ name = "cmdline" },
 	}),
-	view = {
-		entries = { name = "custom", selection_order = "near_cursor" },
-	},
 })

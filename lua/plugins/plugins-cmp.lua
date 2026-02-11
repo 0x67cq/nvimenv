@@ -1,61 +1,72 @@
+--[[ 🟢 场景 A：日常代码补全
+当你输入代码时，会自动弹出一个列表。
+    选择条目：
+        Ctrl + n 或 Tab: 下一个 (Next)
+        Ctrl + p 或 Shift + Tab: 上一个 (Previous)
+    确认补全：
+        Enter (<CR>): 选中当前条目并插入。
+    查看文档：
+        有些函数的参数解释很长，浮窗显示不全。
+        Ctrl + f: 向下滚动文档浮窗。
+        Ctrl + b: 向上滚动文档浮窗。
+🟢 场景 B：Snippet 代码片段跳转
+当你补全了一个函数（比如 Go 的 func 或 HTML 标签）后，光标通常会停留在第一个参数位置。
+    跳转到下一个参数：
+        Tab: 比如你补全了 if err != nil { ... }，光标在 err 上，按 Tab 会自动跳到 { 里面。
+        Shift + Tab: 跳回上一个参数。
+🟢 场景 C：路径补全
+    在写 import 或 require 路径时，Cmp 会自动提示文件路径。
+    在输入命令模式 : 时（比如 :e lua/config...），它也会自动补全路径。
+]]
+
+--[[ LuaSnip 的操作通常与 cmp 绑定在一起（我们在上一步的 cmp.lua 里已经配好了 Tab 跳转）。
+核心场景：
+    触发：在 Insert 模式输入关键词，比如在 Go 文件里输入 func。
+    展开：Cmp 列表出现 func，按下 Enter。
+    跳转：光标会自动定位到函数名。
+        输入完名字后，按 Tab -> 跳转到参数列表。
+        输入完参数，按 Tab -> 跳转到返回值。
+        输入完返回值，按 Tab -> 跳转到函数体。
+    回跳：如果你发现参数写错了，按 Shift + Tab 跳回去修改。
+]]
+
 return {
-	-- 美化补全弹窗
-	{
-		"onsails/lspkind.nvim",
-	},
-	-- 补全
 	{
 		"hrsh7th/nvim-cmp",
+		-- [懒加载] 只有进入插入模式 (InsertEnter) 或 命令行模式 (CmdlineEnter) 时才加载
+		-- 这样可以显著减少 Neovim 启动时间
+		event = { "InsertEnter", "CmdlineEnter" },
 		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-nvim-lua",
-			"hrsh7th/cmp-buffer",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-cmdline",
+			-- [1] 核心补全源
+			"hrsh7th/cmp-nvim-lsp", -- LSP 来源
+			"hrsh7th/cmp-buffer", -- 当前 Buffer 来源
+			"hrsh7th/cmp-path", -- 路径来源
+			"hrsh7th/cmp-cmdline", -- 命令行来源
+
+			-- [2] 片段引擎 (Snippet Engine)
+			{
+				"L3MON4D3/LuaSnip",
+				version = "v2.*", -- 推荐使用 v2 版本
+				-- 如果你装了 make 和 jsregexp，可以开启下面这行优化性能（可选）
+				-- build = "make install_jsregexp"
+				dependencies = {
+					"rafamadriz/friendly-snippets", -- 你的 TODO：这里就是加载常用脚本库的地方
+				},
+				config = function()
+					-- 这里引用你单独的 LuaSnip 配置
+					require("configs.coding.lua_snip")
+				end,
+			},
+
+			-- [3] 胶水插件 (连接 Cmp 和 LuaSnip)
 			"saadparwaiz1/cmp_luasnip",
-			"L3MON4D3/LuaSnip",
+
+			-- [4] 美化插件 (图标)
+			"onsails/lspkind.nvim",
 		},
 		config = function()
+			-- 这里引用核心 Cmp 配置 (就是我们上一步优化的那个文件)
 			require("configs.coding.cmp")
 		end,
-	},
-	-- TODO 找个时间去看一下 脚本这几个插件
-	-- 加载脚本合集
-	{
-		"rafamadriz/friendly-snippets",
-		event = "InsertEnter",
-	},
-	-- 脚本引擎
-	{
-		"L3MON4D3/LuaSnip",
-		dependencies = { "hrsh7th/nvim-cmp" },
-		config = function()
-			require("configs.coding.lua_snip")
-		end,
-	},
-	{
-		"saadparwaiz1/cmp_luasnip",
-		dependencies = { "L3MON4D3/LuaSnip" },
-	},
-	{
-		"hrsh7th/cmp-nvim-lua",
-		dependencies = { "saadparwaiz1/cmp_luasnip" },
-	},
-	{
-		"hrsh7th/cmp-nvim-lsp",
-		dependencies = { "hrsh7th/cmp-nvim-lua" },
-		config = function() end,
-	},
-	{
-		"hrsh7th/cmp-cmdline",
-		dependencies = { "hrsh7th/nvim-cmp" },
-	},
-	{
-		"hrsh7th/cmp-buffer",
-		dependencies = { "hrsh7th/cmp-nvim-lsp" },
-	},
-	{
-		"hrsh7th/cmp-path",
-		dependencies = { "hrsh7th/cmp-buffer" },
 	},
 }
