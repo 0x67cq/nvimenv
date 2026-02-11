@@ -3,73 +3,134 @@ if not status_ok then
 	return
 end
 
-vim.keymap.set("n", "<leader>bn", ":BufferLineCycleNext <CR>")
-vim.keymap.set("n", "<leader>bp", ":BufferLineCyclePrev <CR>")
-vim.keymap.set("n", "<leader>bnn", "<cmd>BufferLineMoveNext<cr>")
-vim.keymap.set("n", "<leader>bpp", "<cmd>BufferLineMovePrev<cr>")
-vim.keymap.set("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>")
-vim.keymap.set("n", "<leader>2", "<Cmd>BufferLineGoToBuffer 2<CR>")
-vim.keymap.set("n", "<leader>3", "<Cmd>BufferLineGoToBuffer 3<CR>")
-vim.keymap.set("n", "<leader>4", "<Cmd>BufferLineGoToBuffer 4<CR>")
-vim.keymap.set("n", "<leader>5", "<Cmd>BufferLineGoToBuffer 5<CR>")
-vim.keymap.set("n", "<leader>6", "<Cmd>BufferLineGoToBuffer 6<CR>")
-vim.keymap.set("n", "<leader>7", "<Cmd>BufferLineGoToBuffer 7<CR>")
-vim.keymap.set("n", "<leader>8", "<Cmd>BufferLineGoToBuffer 8<CR>")
-vim.keymap.set("n", "<leader>9", "<Cmd>BufferLineGoToBuffer 9<CR>")
+-- =============================================================================
+-- 快捷键设置 (Keymaps)
+-- =============================================================================
+local map = vim.keymap.set
+local opts = { noremap = true, silent = true, desc = "Bufferline" }
 
+-- 切换标签
+map("n", "<leader>bn", "<cmd>BufferLineCycleNext<CR>", opts) -- 下一个
+map("n", "<leader>bp", "<cmd>BufferLineCyclePrev<CR>", opts) -- 上一个
+
+-- 移动标签位置 (比如把第3个移到第2个)
+map("n", "<leader>bnn", "<cmd>BufferLineMoveNext<CR>", opts)
+map("n", "<leader>bpp", "<cmd>BufferLineMovePrev<CR>", opts)
+
+-- 快速跳转 (Leader + 1~9)
+map("n", "<leader>1", "<cmd>BufferLineGoToBuffer 1<CR>", opts)
+map("n", "<leader>2", "<cmd>BufferLineGoToBuffer 2<CR>", opts)
+map("n", "<leader>3", "<cmd>BufferLineGoToBuffer 3<CR>", opts)
+map("n", "<leader>4", "<cmd>BufferLineGoToBuffer 4<CR>", opts)
+map("n", "<leader>5", "<cmd>BufferLineGoToBuffer 5<CR>", opts)
+map("n", "<leader>6", "<cmd>BufferLineGoToBuffer 6<CR>", opts)
+map("n", "<leader>7", "<cmd>BufferLineGoToBuffer 7<CR>", opts)
+map("n", "<leader>8", "<cmd>BufferLineGoToBuffer 8<CR>", opts)
+map("n", "<leader>9", "<cmd>BufferLineGoToBuffer 9<CR>", opts)
+
+-- 关闭当前 (建议用这个代替 :bd，更安全)
+map("n", "<leader>bd", "<cmd>bdelete!<CR>", { desc = "Close Buffer" })
+
+-- =============================================================================
+-- 主配置 (Setup)
+-- =============================================================================
 bufferline.setup({
 	options = {
-		mode = "tabs",
-		-- numbers = function(opts)
-		--   return string.format("%s", opts.raise(opts.ordinal))
-		-- end,
-		numbers = "ordinal",
-		close_command = "Bdelete! %d", -- can be a string | function, see "Mouse actions"
-		right_mouse_command = "Bdelete! %d", -- can be a string | function, see "Mouse actions"
-		left_mouse_command = "buffer %d", -- can be a string | function, see "Mouse actions"
-		middle_mouse_command = nil, -- can be a string | function, see "Mouse actions"
-		-- indicator_icon = "▎",
-		buffer_close_icon = "",
+		-- [核心修复] 必须是 buffers，否则你打开文件顶部不显示！
+		mode = "buffers",
+
+		-- 样式风格
+		style_preset = bufferline.style_preset.default, -- 或者 .minimal
+		theme = "gruvbox", -- 适配主题
+
+		-- [核心] NvimTree 避让 (防止标签栏遮住左侧文件树)
+		offsets = {
+			{
+				filetype = "NvimTree",
+				text = "File Explorer",
+				text_align = "center", -- "left" | "center" | "right"
+				separator = true,
+				padding = 1,
+			},
+		},
+
+		-- 图标设置 (使用新版 Nerd Fonts)
+		buffer_close_icon = "󰅖",
 		modified_icon = "●",
 		close_icon = "",
 		left_trunc_marker = "",
 		right_trunc_marker = "",
-		max_name_length = 18,
-		max_prefix_length = 15, -- prefix used when a buffer is de-duplicated
-		tab_size = 21,
-		diagnostics = false, -- | "nvim_lsp" | "coc" | false,
+
+		-- 序号显示: "ordinal" (1,2,3...) 或 "buffer_id"
+		numbers = "ordinal",
+
+		-- [增强] 显示 LSP 错误诊断
+		-- 当文件有错误时，标签页名字会变红，并显示图标
+		diagnostics = "nvim_lsp",
 		diagnostics_update_in_insert = false,
-		-- diagnostics_indicator = function(count, level, diagnostics_dict, context)
-		--   local s = " "
-		--   for e, n in pairs(diagnostics_dict) do
-		--     local sym = e == "error" and " " or (e == "warning" and " " or "")
-		--     s = s .. n .. sym
-		--   end
-		--   return s
-		-- end,
-		-- NOTE: this will be called a lot so don't do any heavy processing here
-		-- custom_filter = function(buf_number)
-		--   -- filter out filetypes you don't want to see
-		--   if vim.bo[buf_number].filetype ~= "<i-dont-want-to-see-this>" then
-		--     return true
-		--   end
-		--   -- filter out by buffer name
-		--   if vim.fn.bufname(buf_number) ~= "<buffer-name-I-dont-want>" then
-		--     return true
-		--   end
-		--   -- filter out based on arbitrary rules
-		--   -- e.g. filter out vim wiki buffer from tabline in your work repo
-		--   if vim.fn.getcwd() == "<work-repo>" and vim.bo[buf_number].filetype ~= "wiki" then
-		--     return true
-		--   end
-		-- end,
-		offsets = { { filetype = "NvimTree", text = "File Explorer", text_align = "center" } },
-		show_buffer_icons = true,
+		diagnostics_indicator = function(count, level, diagnostics_dict, context)
+			local icon = level:match("error") and " " or " "
+			return " " .. icon .. count
+		end,
+
+		-- 鼠标左键点击切换，右键点击关闭
+		close_command = "bdelete! %d",
+		right_mouse_command = "bdelete! %d",
+		left_mouse_command = "buffer %d",
+
+		-- 分隔符风格
+		separator_style = "thin", -- "slant" | "thick" | "thin"
+
+		-- 鼠标悬停显示关闭按钮
 		show_buffer_close_icons = true,
 		show_close_icon = true,
-		show_tab_indicators = true,
-		persist_buffer_sort = true, -- whether or not custom sorted buffers should persist
-		separator_style = "thin",
-		enforce_regular_tabs = false,
+	},
+
+	-- =========================================================================
+	-- [关键] 透明背景高亮覆盖
+	-- 这段代码会让 BufferLine 的背景完全透明，适配你的 Gruvbox
+	-- =========================================================================
+	highlights = {
+		fill = {
+			bg = "NONE",
+		},
+		background = {
+			bg = "NONE",
+		},
+		tab = {
+			bg = "NONE",
+		},
+		tab_selected = {
+			bg = "NONE",
+		},
+		tab_close = {
+			bg = "NONE",
+		},
+		separator = {
+			fg = "NONE",
+			bg = "NONE",
+		},
+		separator_selected = {
+			bg = "NONE",
+		},
+		close_button = {
+			bg = "NONE",
+		},
+		close_button_selected = {
+			bg = "NONE",
+		},
+		buffer_visible = {
+			bg = "NONE",
+		},
+		modified = {
+			bg = "NONE",
+		},
+		modified_visible = {
+			bg = "NONE",
+		},
+		modified_selected = {
+			bg = "NONE",
+		},
+		-- 你可以根据需要继续添加...
 	},
 })

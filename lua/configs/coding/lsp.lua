@@ -27,38 +27,6 @@ vim.keymap.set("n", "<leader>gsl", "<cmd>lua vim.diagnostic.setloclist()<CR>")
 vim.keymap.set("n", "<leader>bf", "<cmd>lua vim.lsp.buf.format({ async = true }) vim.cmd.write() <CR>")
 
 -- =============================================================================
--- Mason Settings
--- =============================================================================
-local DEFAULT_SETTINGS = {
-	install_root_dir = vim.fn.stdpath("data") .. "/mason",
-	PATH = "prepend",
-	log_level = vim.log.levels.INFO,
-	max_concurrent_installers = 4,
-	registries = { "github:mason-org/mason-registry" },
-	providers = { "mason.providers.registry-api", "mason.providers.client" },
-	github = { download_url_template = "https://github.com/%s/releases/download/%s/%s" },
-	pip = { upgrade_pip = false, install_args = {} },
-	ui = {
-		check_outdated_packages_on_open = true,
-		border = "none",
-		width = 0.8,
-		height = 0.9,
-		icons = { package_installed = "◍", package_pending = "◍", package_uninstalled = "◍" },
-		keymaps = {
-			toggle_package_expand = "<CR>",
-			install_package = "i",
-			update_package = "u",
-			check_package_version = "c",
-			update_all_packages = "U",
-			check_outdated_packages = "C",
-			uninstall_package = "X",
-			cancel_installation = "<C-c>",
-			apply_language_filter = "<C-f>",
-		},
-	},
-}
-
--- =============================================================================
 -- [FIXED] 辅助函数: Root Directory 查找
 -- =============================================================================
 local function find_root(markers)
@@ -89,53 +57,38 @@ end
 --
 
 function M.setup()
-	-- 1. Setup Mason (保持不变，用于下载二进制文件)
-	local status_ok, mason = pcall(require, "mason")
-	if not status_ok then
-		return
-	end
+	-- =================================================================
+	--  诊断样式全局配置 (弱化 Warning)
+	-- =================================================================
+	vim.diagnostic.config({
+		-- 1. 虚拟文本 (行尾显示的文字)
+		virtual_text = {
+			prefix = "●", -- 或者 "■", "▎"
+			source = "if_many", -- 只有多个来源时才显示来源 (如 [eslint])
+		},
 
-	local status_lsp, mason_lspconfig = pcall(require, "mason-lspconfig")
-	if not status_lsp then
-		return
-	end
-
-	mason.setup(DEFAULT_SETTINGS) -- 假设 DEFAULT_SETTINGS 在你文件上方已定义
-
-	local servers = {
-		"clangd",
-		"gopls",
-		"lua_ls",
-		"bashls",
-		"rust_analyzer",
-		"svelte",
-		"html", -- html-lsp
-		"cssls", -- css-lsp
-		"ts_ls", -- typescript-language-server (Svelte 强依赖 TS)
-	}
-
-	mason_lspconfig.setup({
-		ensure_installed = servers,
-		automatic_installation = true,
-	})
-
-	local has_installer, tool_installer = pcall(require, "mason-tool-installer")
-	if has_installer then
-		tool_installer.setup({
-			ensure_installed = {
-				-- Formatters (配合 null-ls 使用)
-				"prettier", -- Svelte/JS/HTML 格式化神器
-				"goimports", -- Go 导入整理
-
-				-- DAP Debuggers (调试器)
-				"delve", -- Go debugger
-				-- "codelldb", -- C/C++ debugger
+		-- 2. 侧边栏图标 (Signs)
+		signs = {
+			text = {
+				[vim.diagnostic.severity.ERROR] = " ",
+				[vim.diagnostic.severity.WARN] = " ",
+				[vim.diagnostic.severity.HINT] = " ",
+				[vim.diagnostic.severity.INFO] = " ",
 			},
-			auto_update = true,
-			run_on_start = true,
-		})
-	end
+		},
+		-- 3. [核心修改] 下划线配置
+		underline = {
+			-- 只有 ERROR 级别的错误才显示下划线
+			severity = { min = vim.diagnostic.severity.ERROR },
+		},
 
+		-- 如果你想完全关闭下划线，就改成:
+		-- underline = false,
+
+		-- 4. 浮窗更新逻辑
+		update_in_insert = false, -- 插入模式下不更新诊断，防止打字时一直闪
+		severity_sort = true, -- 优先级高的错误排在前面
+	})
 	-- 2. 准备 Capabilities (代码补全能力)
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
 	local status_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")

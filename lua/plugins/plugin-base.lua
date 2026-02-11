@@ -18,4 +18,16 @@ return {
 		"MunifTanjim/nui.nvim",
 		lazy = true,
 	},
+	{
+		"j-hui/fidget.nvim",
+		event = "LspAttach", -- 当 LSP 启动时加载
+		opts = {
+			-- 这里通常用默认配置就很好看了
+			notification = {
+				window = {
+					winblend = 0, -- 背景不透明度 (0-100)
+				},
+			},
+		},
+	},
 }

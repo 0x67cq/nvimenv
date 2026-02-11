@@ -4,6 +4,7 @@ if not status_ok then
 end
 
 gitsigns.setup({
+	-- 1. 侧边栏图标配置
 	signs = {
 		add = { text = "┃" },
 		change = { text = "┃" },
@@ -12,32 +13,76 @@ gitsigns.setup({
 		changedelete = { text = "~" },
 		untracked = { text = "┆" },
 	},
-	signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
-	numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
-	linehl = false, -- Toggle with `:Gitsigns toggle_linehl`
-	word_diff = false, -- Toggle with `:Gitsigns toggle_word_diff`
-	watch_gitdir = {
-		interval = 1000,
-		follow_files = true,
-	},
-	attach_to_untracked = true,
-	current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
-	current_line_blame_opts = {
-		virt_text = true,
-		virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
-		delay = 1000,
-		ignore_whitespace = false,
-	},
-	sign_priority = 6,
-	update_debounce = 100,
-	status_formatter = nil, -- Use default
-	max_file_length = 40000,
+
+	-- 2. 预览窗口样式 (浮窗预览 hunk)
 	preview_config = {
-		-- Options passed to nvim_open_win
-		border = "single",
+		border = "rounded",
 		style = "minimal",
 		relative = "cursor",
 		row = 0,
 		col = 1,
 	},
+
+	-- 3. 快捷键配置 (On Attach)
+	on_attach = function(bufnr)
+		local gs = package.loaded.gitsigns
+
+		local function map(mode, l, r, opts)
+			opts = opts or {}
+			opts.buffer = bufnr
+			vim.keymap.set(mode, l, r, opts)
+		end
+
+		-- =============================================================
+		-- 导航 (Navigation)
+		-- =============================================================
+		-- ]c 跳到下一个修改处，[c 跳到上一个
+		map("n", "]c", function()
+			if vim.wo.diff then
+				return "]c"
+			end
+			vim.schedule(function()
+				gs.next_hunk()
+			end)
+			return "<Ignore>"
+		end, { expr = true, desc = "Next Hunk" })
+
+		map("n", "[c", function()
+			if vim.wo.diff then
+				return "[c"
+			end
+			vim.schedule(function()
+				gs.prev_hunk()
+			end)
+			return "<Ignore>"
+		end, { expr = true, desc = "Prev Hunk" })
+
+		-- =============================================================
+		-- 操作 (Actions)
+		-- =============================================================
+		-- <leader>ghp: 预览当前代码块在 Git 里的原始版本 (Preview)
+		map("n", "<leader>ghp", gs.preview_hunk, { desc = "Preview Hunk" })
+
+		-- <leader>ghb: 查看当前行的 Blame (谁写的，哪次提交)
+		map("n", "<leader>ghb", function()
+			gs.blame_line({ full = true })
+		end, { desc = "Blame Line" })
+
+		-- <leader>ghd: 查看当前文件的 Diff (Diff 模式)
+		map("n", "<leader>ghd", gs.diffthis, { desc = "Diff This" })
+
+		-- <leader>ghs: 暂存当前代码块 (Stage)
+		map("n", "<leader>ghs", gs.stage_hunk, { desc = "Stage Hunk" })
+
+		-- <leader>ghr: 撤销当前代码块的修改 (Reset)
+		map("n", "<leader>ghr", gs.reset_hunk, { desc = "Reset Hunk" })
+
+		-- Visual 模式下也可以 Stage/Reset 选中的行
+		map("v", "<leader>ghs", function()
+			gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+		end)
+		map("v", "<leader>ghr", function()
+			gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+		end)
+	end,
 })

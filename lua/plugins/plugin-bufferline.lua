@@ -1,11 +1,12 @@
 return {
-    -- 上边缘tab页(可以再找找看)
-    {
-	"akinsho/bufferline.nvim",
-		lazy = true,
-		event = "BufRead",
-		init = function()
+	{
+		"akinsho/bufferline.nvim",
+		version = "*",
+		event = "VeryLazy",
+		dependencies = "nvim-tree/nvim-web-devicons",
+		-- [修复] 必须用 config，确保插件加载后再运行配置
+		config = function()
 			require("configs.editor.bufferline")
 		end,
-    },
+	},
 }

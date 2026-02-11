@@ -24,25 +24,41 @@ LSP 发现你有一个错误，或者有一个可以优化的地方。
 ]]
 
 return {
-	-- lsp config
-	{
-		"neovim/nvim-lspconfig",
-		-- init = function() require("configs.coding.lspconfig") end,
-	},
+	-- [1] Mason 及其生态 (安装器核心)
 	{
 		"williamboman/mason.nvim",
-		-- init = function() require("configs.coding.mason").setup() end,
+		-- 懒加载：打开文件时才加载
+		event = { "BufReadPre", "BufNewFile" },
+		dependencies = {
+			"williamboman/mason-lspconfig.nvim",
+			-- [关键修复] 添加这个插件，你的 selene/prettier 才会自动下载！
+			"WhoIsSethDaniel/mason-tool-installer.nvim",
+		},
+		config = function()
+			-- 这里调用你写的 configs.coding.mason.setup()
+			-- 它会负责配置 mason, mason-lspconfig 和 mason-tool-installer
+			require("configs.coding.mason").setup()
+		end,
 	},
+
+	-- [2] LSP Config (客户端核心)
 	{
-		"williamboman/mason-lspconfig.nvim",
-		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
-		init = function()
+		"neovim/nvim-lspconfig",
+		event = { "BufReadPre", "BufNewFile" },
+		dependencies = {
+			"williamboman/mason.nvim",
+			"hrsh7th/cmp-nvim-lsp", -- 补全能力
+		},
+		config = function()
+			-- 这里调用 configs.coding.lsp.setup() 启动 gopls, clangd 等
 			require("configs.coding.lsp").setup()
 		end,
 	},
-	-- lsp server 自动化安装
+
+	-- [3] None-LS (格式化与补充)
 	{
 		"nvimtools/none-ls.nvim",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 		},
@@ -51,11 +67,11 @@ return {
 		end,
 	},
 
-	-- 函数参数浮框显示
+	-- [4] 函数参数提示
 	{
 		"ray-x/lsp_signature.nvim",
-		lazy = true,
-		init = function()
+		event = "InsertEnter", -- 仅在插入模式加载
+		config = function()
 			require("configs.coding.lsp-signature")
 		end,
 	},
