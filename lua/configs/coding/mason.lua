@@ -146,6 +146,11 @@ function M.setup()
 				-- DAP Debuggers (调试器)
 				"delve", -- Go debugger
 				-- "codelldb", -- C/C++ debugger
+				--
+				"golangci-lint", -- Go 必装
+				"eslint_d", -- 前端必装 (eslint_d 是 eslint 的加速版，更快)
+				"shellcheck", -- Shell 检查
+				"selene", -- Lua 检查
 			},
 			auto_update = true,
 			run_on_start = true,
@@ -153,4 +158,5 @@ function M.setup()
 	end
 	require("mason").setup(DEFAULT_SETTINGS)
 end
+
 return M
