@@ -1,10 +1,41 @@
 return {
-    -- 错误quickfix展示栏
-    {
-        "folke/trouble.nvim",
-        init = function()
-            require("configs.coding.trouble")
-        end,
-        -- require("core.keymaps").trouble_setup()
-    },
+	{
+		"folke/trouble.nvim",
+		cmd = "Trouble",
+		keys = {
+			{
+				"<leader>xx",
+				"<cmd>Trouble diagnostics toggle<cr>",
+				desc = "Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xw",
+				"<cmd>Trouble diagnostics toggle<cr>",
+				desc = "Workspace Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xd",
+				"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+				desc = "Buffer Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xq",
+				"<cmd>Trouble qflist toggle<cr>",
+				desc = "Quickfix List (Trouble)",
+			},
+			{
+				"<leader>xl",
+				"<cmd>Trouble loclist toggle<cr>",
+				desc = "Location List (Trouble)",
+			},
+			{
+				"<leader>gr",
+				"<cmd>Trouble lsp_references toggle<cr>",
+				desc = "LSP References (Trouble)",
+			},
+		},
+		config = function()
+			require("configs.coding.trouble") -- 指向上面这个新文件
+		end,
+	},
 }
