@@ -15,6 +15,8 @@ function M.setup()
 	local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 	null_ls.setup({
+		debug = true, -- 开启这一行
+		log_level = "debug", -- 确保日志级别足够低
 		sources = {
 			-- 格式化工具
 			formatting.shfmt, -- Shell
