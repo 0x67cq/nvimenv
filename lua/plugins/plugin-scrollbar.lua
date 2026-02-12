@@ -1,10 +1,9 @@
 return {
--- 滚动页面效果
-    {
+	{
 		"petertriho/nvim-scrollbar",
-		event = "BufRead",
-		init = function()
-			require("scrollbar").setup()
+		event = { "BufReadPost", "BufNewFile" },
+		config = function()
+			require("configs.editor.scrollbar")
 		end,
 	},
 }
