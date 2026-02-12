@@ -10,6 +10,7 @@ function M.setup()
 	-- 为了代码整洁，把 formatting 提取出来
 	local formatting = null_ls.builtins.formatting
 	local code_actions = null_ls.builtins.code_actions
+	local diagnostics = null_ls.builtins.diagnostics
 
 	-- 创建一个 augroup，防止自动保存命令重复堆叠
 	local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
@@ -23,7 +24,16 @@ function M.setup()
 			formatting.prettier, -- JS/TS/HTML/CSS
 			formatting.stylua, -- Lua
 			-- formatting.rustfmt, -- Rust
-			formatting.goimports_reviser, -- Go Imports
+			-- formatting.goimports_reviser, -- Go Imports
+			formatting.gofumpt,
+			formatting.goimports,
+
+			-- diagnostics.golangci_lint,
+			-- 2. 代码检查 (Diagnostics / Linting) -> 这里替代了 nvim-lint
+			--[[ diagnostics.golangci_lint.with({
+				-- 可以在这里覆盖参数，比如增加超时时间
+				extra_args = { "--fast" },
+			}), ]]
 
 			-- 代码行为
 			-- 注意：refactoring 通常需要依赖 Treesitter

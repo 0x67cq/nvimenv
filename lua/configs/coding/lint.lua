@@ -1,4 +1,5 @@
 local lint = require("lint")
+vim.env.NVIM_LINT_LOG_LEVEL = "debug"
 
 -- 1. 定义各语言使用的 Linter
 lint.linters_by_ft = {
@@ -31,12 +32,9 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
 -- 3. 自定义 Linter 参数 (可选)
 -- 比如 golangcilint，我们希望它在查找项目根目录时更智能
 local golangcilint = lint.linters.golangcilint
-golangcilint.append_fname = true
+-- lint.linters.golangcilint.append_fname = true
 golangcilint.args = {
 	"run",
-	"--out-format",
-	"json",
+	"--output.json.path=stdout",
 	"--show-stats=false",
-	"--print-issued-lines=false",
-	"--print-linter-name=false",
 }

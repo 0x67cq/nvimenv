@@ -49,7 +49,7 @@ trouble.setup({
 		-- 分屏跳转 (你的习惯)
 		["<c-x>"] = "jump_split", -- 水平分屏打开
 		["<c-v>"] = "jump_vsplit", -- 垂直分屏打开
-		["<c-t>"] = "jump_tab", -- 新标签页打开
+		-- ["<c-t>"] = "open_tab", -- 新标签页打开
 
 		-- 预览和详情
 		["P"] = "toggle_preview", -- 开启/关闭预览
