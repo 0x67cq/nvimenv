@@ -1,85 +1,63 @@
-local present, trouble = pcall(require, "trouble")
-
-if not present then
+local status_ok, trouble = pcall(require, "trouble")
+if not status_ok then
 	return
 end
 
--- =============================================================================
--- Keymaps (适配 Trouble v3 API)
--- =============================================================================
-
--- 辅助函数：简化 toggle 调用
-local function toggle(mode, opts)
-	return function()
-		trouble.toggle(vim.tbl_extend("force", { mode = mode }, opts or {}))
-	end
-end
-
--- =============================================================================
--- Setup (适配 Trouble v3 配置结构)
--- =============================================================================
-
 trouble.setup({
-	-- 窗口设置 (原 position, height, width)
+	-- [1] 窗口外观
 	win = {
-		type = "split", -- split (下方/上方), float (浮动)
-		position = "bottom", -- bottom, top, left, right
-		size = 10, -- 原 height = 10
-		-- border = "rounded", -- 如果想要圆角边框可以解开注释
+		type = "split", -- 使用分割窗口
+		position = "bottom", -- 也就是 Quickfix 的位置
+		size = 10, -- 高度
+		-- border = "rounded", -- 如果你想要浮窗圆角，把 type 改成 float 并解开这个
 	},
 
-	-- 图标与标志设置 (原 signs, icons)
+	-- [2] 行为设置
+	focus = true, -- 打开窗口时自动聚焦进去
+	follow = true, -- 列表滚动时，预览窗口自动跟随
+	auto_close = false, -- 跳转后不自动关闭 (改为 true 则跳完就关)
+
+	-- [3] 图标设置 (使用默认的 Nerd Fonts，比文本 'E' 好看)
+	-- 如果你非要改回文本，可以在这里覆盖，但我建议保留默认
 	icons = {
 		indent = {
-			fold_open = "",
-			fold_closed = "",
+			top = "│ ",
+			middle = "├╴",
+			last = "└╴",
+			fold_open = " ",
+			fold_closed = " ",
+			ws = "  ",
 		},
-		folder_closed = "",
-		folder_open = "",
+		folder_closed = " ",
+		folder_open = " ",
 		kinds = {
-			-- 对应你原来的 signs 配置
-			Error = "E",
-			Warning = "",
-			Hint = "H",
-			Information = "",
-			Other = "O",
+			Error = " ",
+			Warning = " ",
+			Hint = " ",
+			Information = " ",
 		},
 	},
 
-	-- 行为设置
-	focus = true, -- 打开时自动聚焦窗口
-	follow = true, -- 列表滚动时跟随光标
-	auto_close = false, -- 跳转后不自动关闭
-	auto_preview = false, -- 你原来设置了 false
-
-	-- 快捷键设置 (原 action_keys)
-	-- 格式: ["按键"] = "动作名称"
+	-- [4] 按键映射 (v3 版本)
+	-- Trouble 默认已经有 j/k/q/Esc/Enter 了，这里只添加你习惯的特殊键
 	keys = {
+		-- 基础操作
 		["q"] = "close",
-		["<esc>"] = "cancel",
-		["r"] = "refresh",
-		["<cr>"] = "jump",
-		["<tab>"] = "jump",
-		["<c-x>"] = "jump_split", -- 原 open_split
-		["<c-v>"] = "jump_vsplit", -- 原 open_vsplit
-		["<c-t>"] = "jump_tab", -- 原 open_tab
-		["o"] = "jump_close", -- 跳转并关闭
-		["P"] = "toggle_preview",
-		["K"] = "inspect", -- 悬浮显示完整信息 (原 hover)
-		["p"] = "preview", -- 预览位置
-		["zM"] = "fold_close_all", -- 原 close_folds
-		["zR"] = "fold_open_all", -- 原 open_folds
-		["zA"] = "fold_toggle", -- 原 toggle_fold
-		["k"] = "prev", -- 原 previous
-		["j"] = "next", -- 原 next
-	},
+		["<esc>"] = "close", -- 我习惯按 esc 直接关，而不是 cancel
+		["<cr>"] = "jump", -- 回车跳转
 
-	-- 模式特定配置 (可选)
-	modes = {
-		-- 例如：lsp 引用模式下自动展开
-		lsp_references = {
-			auto_refresh = false,
-			fold_open = true,
-		},
+		-- 分屏跳转 (你的习惯)
+		["<c-x>"] = "jump_split", -- 水平分屏打开
+		["<c-v>"] = "jump_vsplit", -- 垂直分屏打开
+		["<c-t>"] = "jump_tab", -- 新标签页打开
+
+		-- 预览和详情
+		["P"] = "toggle_preview", -- 开启/关闭预览
+		["K"] = "preview", -- 悬浮显示完整报错信息
+
+		-- 折叠操作
+		["za"] = "fold_toggle",
+		["zM"] = "fold_close_all",
+		["zR"] = "fold_open_all",
 	},
 })

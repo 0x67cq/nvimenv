@@ -1,31 +1,10 @@
 return {
-	-- 缩进线
 	{
 		"lukas-reineke/indent-blankline.nvim",
-		lazy = true,
-		main = "ibl",
-		opts = {
-			indent = {
-				char = { "│" },
-			},
-			enabled = true,
-			-- char = "┊",
-			exclude = {
-				"help",
-				"terminal",
-				"starter",
-				"nvim-tree",
-				"packer",
-				"lspinfo",
-				"TelescopePrompt",
-				"TelescopeResults",
-				"mason",
-				"",
-			},
-			buftype_exclude = { "terminal" },
-			show_trailing_blankline_indent = false,
-			show_first_indent_level = false,
-			show_current_context = false,
-		},
+		main = "ibl", -- 指定入口模块，v3 版本必须
+		event = { "BufReadPost", "BufNewFile" }, -- 打开文件时才显示缩进线
+		config = function()
+			require("configs.coding.indent")
+		end,
 	},
 }
