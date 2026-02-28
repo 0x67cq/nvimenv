@@ -1,5 +1,5 @@
 local lint = require("lint")
-vim.env.NVIM_LINT_LOG_LEVEL = "debug"
+-- vim.env.NVIM_LINT_LOG_LEVEL = "debug"
 
 -- 1. 定义各语言使用的 Linter
 lint.linters_by_ft = {
@@ -37,4 +37,5 @@ golangcilint.args = {
 	"run",
 	"--output.json.path=stdout",
 	"--show-stats=false",
+	"--issues-exit-code=0",
 }
