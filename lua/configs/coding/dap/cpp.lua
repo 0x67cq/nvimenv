@@ -6,6 +6,7 @@ gcc -g main.c -o main
 # 按 <leader>dc 启动调试
 # 输入路径：/path/to/your/project/main
  ]]
+
 local M = {}
 
 function M.setup()
@@ -13,22 +14,25 @@ function M.setup()
 	local mason_registry = require("mason-registry")
 
 	-- =========================================================================
-	-- 1. 动态获取 Mason 安装的 codelldb 路径
+	-- 1. 获取 codelldb 路径 (直接使用原生标准路径，最稳定)
 	-- =========================================================================
-	-- 这是一个很关键的步骤，因为不同系统 Mason 安装路径不一样
-	local codelldb_pkg = mason_registry.get_package("codelldb")
-	if not codelldb_pkg:is_installed() then
-		-- 如果没装，提示一下用户
-		vim.notify("CodeLLDB not installed via Mason!", vim.log.levels.WARN)
-		return
-	end
+	local data_path = vim.fn.stdpath("data")
+	local default_mason_path = data_path .. "/mason/packages/codelldb"
 
-	local extension_path = codelldb_pkg:get_install_path() .. "/extension/"
+	local extension_path = default_mason_path .. "/extension/"
 	local codelldb_path = extension_path .. "adapter/codelldb"
 
-	-- Windows 下需要加 .exe 后缀
+	-- 检查 Mason 是否就绪，仅用于发通知，不再依赖它的 API 获取路径
+	local ok, codelldb_pkg = pcall(mason_registry.get_package, "codelldb")
+	if not (ok and codelldb_pkg:is_installed()) then
+		vim.schedule(function()
+			vim.notify("CodeLLDB not fully loaded in Mason, using fallback path.", vim.log.levels.INFO)
+		end)
+	end
+
+	-- Windows 环境兼容
 	if vim.fn.has("win32") == 1 then
-		codelldb_path = extension_path .. "adapter\\codelldb.exe"
+		codelldb_path = codelldb_path:gsub("/", "\\") .. ".exe"
 	end
 
 	-- =========================================================================
@@ -36,12 +40,10 @@ function M.setup()
 	-- =========================================================================
 	dap.adapters.codelldb = {
 		type = "server",
-		port = "${port}", -- [重要] 让 Neovim 自动随机分配端口，防止冲突
+		port = "${port}",
 		executable = {
 			command = codelldb_path,
 			args = { "--port", "${port}" },
-			-- On windows you may have to uncomment this:
-			-- detached = false,
 		},
 	}
 
@@ -53,15 +55,13 @@ function M.setup()
 			name = "Launch file",
 			type = "codelldb",
 			request = "launch",
-			-- 动态输入可执行文件路径
 			program = function()
 				return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
 			end,
 			cwd = "${workspaceFolder}",
-			stopOnEntry = false, -- 设为 false，直接运行到断点；设为 true 会停在 main 函数第一行
+			stopOnEntry = false,
 		},
 		{
-			-- 如果你需要带参数调试，选这个配置
 			name = "Launch file with args",
 			type = "codelldb",
 			request = "launch",

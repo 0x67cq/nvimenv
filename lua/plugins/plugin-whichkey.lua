@@ -32,7 +32,7 @@ return {
 			-- 如果不设置这个，按下空格键后要等 1秒(默认) 才会弹出菜单
 			-- 设置为 300ms 既不会干扰快速输入，又能及时显示提示
 			vim.o.timeout = true
-			vim.o.timeoutlen = 300
+			vim.o.timeoutlen = 500
 		end,
 		config = function()
 			require("configs.editor.whichkey")
