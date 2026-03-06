@@ -129,3 +129,25 @@ autocmd("VimLeave", {
 		vim.opt.guicursor = "a:ver25-blinkon1"
 	end,
 })
+
+-- 定义一个函数来设置搜索高亮
+local function set_search_hl()
+	-- 1. 所有匹配项：深米色背景 + 黑色文字
+	vim.api.nvim_set_hl(0, "Search", { fg = "#000000", bg = "#d2b48c" })
+
+	-- 2. 当前选中项 (及右下角计数): 亮黄色背景 + 黑色文字 + 加粗
+	vim.api.nvim_set_hl(0, "CurSearch", { fg = "#000000", bg = "#ffaf00", bold = true })
+
+	-- 3. 增量搜索同步
+	vim.api.nvim_set_hl(0, "IncSearch", { link = "CurSearch" })
+end
+
+-- 创建自动命令：每当配色方案改变时，重新应用你的搜索颜色
+-- 这样可以防止 Gruvbox 覆盖你的设置
+vim.api.nvim_create_autocmd("ColorScheme", {
+	pattern = "*",
+	callback = set_search_hl,
+})
+
+-- 立即执行一次，确保启动时生效
+set_search_hl()

@@ -28,20 +28,15 @@ end
 
 -- [按键映射表]
 local m = {
-	-- 历史记录
 	cycle_history_next = "<C-j>",
 	cycle_history_prev = "<C-k>",
-	-- 上下移动 (列表内)
 	move_selection_next = "<C-n>",
 	move_selection_previous = "<C-p>",
-	-- 关闭
 	close = "<C-c>",
 	n_close = "<esc>",
-	-- 选择
 	select_default = "<CR>",
 	select_horizontal = "<C-x>",
 	select_vertical = "<C-v>",
-	-- 滚动预览窗口
 	preview_scrolling_up = "<C-u>",
 	preview_scrolling_down = "<C-d>",
 }
@@ -50,15 +45,15 @@ local m = {
 local keymap = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
-keymap("n", "<leader>fb", ":Telescope buffers <CR>", opts) -- 找已打开的 Buffer
-keymap("n", "<leader>ff", ":Telescope find_files <CR>", opts) -- 找文件
-keymap("n", "<leader>fa", ":Telescope find_files follow=true no_ignore=true hidden=true <CR>", opts) -- 找所有文件(含隐藏)
-keymap("n", "<leader>gm", ":Telescope git_commits <CR>", opts) -- Git 提交记录
-keymap("n", "<leader>gs", ":Telescope git_status <CR>", opts) -- Git 状态
-keymap("n", "<leader>fh", ":Telescope help_tags <CR>", opts) -- 查帮助文档
-keymap("n", "<leader>fw", ":Telescope live_grep <CR>", opts) -- 全局搜索文字
-keymap("n", "<leader>fo", ":Telescope oldfiles <CR>", opts) -- 最近打开的文件
-keymap("n", "<leader>pm", ":lua require'telescope'.extensions.project.project{}<CR>", opts) -- 项目管理
+keymap("n", "<leader>fb", ":Telescope buffers <CR>", opts)
+keymap("n", "<leader>ff", ":Telescope find_files <CR>", opts)
+keymap("n", "<leader>fa", ":Telescope find_files follow=true no_ignore=true hidden=true <CR>", opts)
+keymap("n", "<leader>gm", ":Telescope git_commits <CR>", opts)
+keymap("n", "<leader>gs", ":Telescope git_status <CR>", opts)
+keymap("n", "<leader>fh", ":Telescope help_tags <CR>", opts)
+keymap("n", "<leader>fw", ":Telescope live_grep <CR>", opts)
+keymap("n", "<leader>fo", ":Telescope oldfiles <CR>", opts)
+keymap("n", "<leader>pm", ":lua require'telescope'.extensions.project.project{}<CR>", opts)
 
 -- 搜索光标下的单词
 keymap(
@@ -68,16 +63,26 @@ keymap(
 	opts
 )
 
+-- Telescope 主配置
 telescope.setup({
 	-- 1. 默认配置
 	defaults = {
-		buffer_previewer_maker = new_maker, -- 挂载防卡死预览器
+		buffer_previewer_maker = new_maker,
 		prompt_prefix = " ",
 		selection_caret = " ",
 		entry_prefix = "  ",
 		initial_mode = "insert",
 
-		-- 搜索参数 (ripgrep)
+		-- UI 视觉优化：保留圆角和真彩色
+		winblend = 0,
+		border = {},
+		borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
+		color_devicons = true,
+		set_env = { ["COLORTERM"] = "truecolor" },
+		path_display = { shorten = { len = 3, exclude = { 1, -1 } } },
+
+		-- 搜索参数优化：忽略 node_modules 防止搜索过慢
+		file_ignore_patterns = { "node_modules", "dist", ".git" },
 		vimgrep_arguments = {
 			"rg",
 			"--color=never",
@@ -86,11 +91,11 @@ telescope.setup({
 			"--line-number",
 			"--column",
 			"--smart-case",
-			"--hidden", -- 搜索隐藏文件
-			"--glob=!.git/", -- 排除 .git 目录
+			"--hidden",
+			"--glob=!.git/",
 		},
 
-		-- 弹窗内快捷键
+		-- 弹窗内快捷键：Insert 和 Normal 模式对齐
 		mappings = {
 			i = {
 				[m.cycle_history_next] = actions.cycle_history_next,
@@ -110,30 +115,30 @@ telescope.setup({
 				[m.select_default] = actions.select_default,
 				[m.select_horizontal] = actions.select_horizontal,
 				[m.select_vertical] = actions.select_vertical,
+				-- 【关键优化】在 Normal 模式下也能用 Ctrl 键上下移动和滚动预览
+				[m.move_selection_next] = actions.move_selection_next,
+				[m.move_selection_previous] = actions.move_selection_previous,
+				[m.preview_scrolling_up] = actions.preview_scrolling_up,
+				[m.preview_scrolling_down] = actions.preview_scrolling_down,
+				["<C-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
 			},
 		},
-
-		file_ignore_patterns = { "node_modules", "dist", ".git" },
-		path_display = { shorten = { len = 3, exclude = { 1, -1 } } }, -- 路径缩短显示 a/b/c/filename
-		winblend = 0,
-		border = {},
-		color_devicons = true,
 	},
 
-	-- 2. 界面选择器配置 (独立于 defaults)
+	-- 2. 界面选择器配置 (修复了层级，如果你喜欢居中大窗口，把 theme 注释掉即可)
 	pickers = {
 		find_files = {
-			theme = "dropdown",
-			previewer = false, -- 找文件时不预览，速度更快
+			-- theme = "dropdown",  -- 注释掉这两行，使用默认带预览的居中大窗口，体验往往更好
+			-- previewer = false,
 			find_command = { "fd", "--type=file", "--hidden", "--smart-case" },
 		},
 		live_grep = {
 			only_sort_text = true,
-			theme = "ivy", -- 搜索文字时建议用 ivy 主题（底部面板），能看到更多预览内容
+			-- theme = "ivy",       -- 同理，注释掉以使用居中大窗口
 		},
 	},
 
-	-- 3. 扩展插件配置 (独立于 defaults)
+	-- 3. 扩展插件配置
 	extensions = {
 		fzf = {
 			fuzzy = true,
@@ -142,14 +147,11 @@ telescope.setup({
 			case_mode = "smart_case",
 		},
 		project = {
-			base_dirs = {
-				"~/syncnote", -- 你的项目根目录
-				-- "~/workspace", -- 可以加更多
-			},
+			base_dirs = { "~/syncnote" },
 			hidden_files = true,
 			theme = "dropdown",
 			order_by = "asc",
-			sync_with_nvim_tree = true, -- 打开项目时自动同步左侧文件树
+			sync_with_nvim_tree = true,
 		},
 	},
 })

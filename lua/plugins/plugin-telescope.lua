@@ -48,11 +48,26 @@ return {
 			"nvim-telescope/telescope-project.nvim",
 		},
 		-- [懒加载] 只有按下这些键时，Telescope 才会加载
+
 		keys = {
-			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
-			{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live Grep" },
-			{ "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find Buffers" },
-			{ "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help" },
+			{ "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "找已打开的 Buffer" },
+			{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "找文件" },
+			{
+				"<leader>fa",
+				"<cmd>Telescope find_files follow=true no_ignore=true hidden=true<cr>",
+				desc = "找所有文件",
+			},
+			{ "<leader>gm", "<cmd>Telescope git_commits<cr>", desc = "Git 提交记录" },
+			{ "<leader>gs", "<cmd>Telescope git_status<cr>", desc = "Git 状态" },
+			{ "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "查帮助文档" },
+			{ "<leader>fw", "<cmd>Telescope live_grep<cr>", desc = "全局搜索文字" },
+			{ "<leader>fo", "<cmd>Telescope oldfiles<cr>", desc = "最近打开的文件" },
+			{ "<leader>pm", "<cmd>lua require('telescope').extensions.project.project{}<cr>", desc = "项目管理" },
+			{
+				"<leader>fg",
+				"<cmd>lua require('telescope.builtin').grep_string({search = vim.fn.expand('<cword>')})<cr>",
+				desc = "搜索光标下单词",
+			},
 		},
 		config = function()
 			require("configs.editor.telescope")
