@@ -146,16 +146,16 @@ telescope.setup({
 			override_file_sorter = true,
 			case_mode = "smart_case",
 		},
-		project = {
+		--[[ project = {
 			base_dirs = { "~/syncnote" },
 			hidden_files = true,
 			theme = "dropdown",
 			order_by = "asc",
 			sync_with_nvim_tree = true,
-		},
+		}, ]]
 	},
 })
 
 -- 加载扩展
 pcall(telescope.load_extension, "fzf")
-pcall(telescope.load_extension, "project")
+-- pcall(telescope.load_extension, "project")
