@@ -62,7 +62,8 @@ codecompanion.setup({
 				},
 			},
 		},
-		inline = { adapter = "llama_cpp_local" },
+		-- inline = { adapter = "llama_cpp_local" },
+		inline = { adapter = "deepseek" },
 		agent = { adapter = "gemini" },
 	},
 
@@ -95,6 +96,25 @@ codecompanion.setup({
 				},
 				name = "qwen3.5-local",
 				schema = { model = { default = "qwen3.5" } },
+			})
+		end,
+
+		deepseek = function()
+			return require("codecompanion.adapters").extend("openai_compat", {
+				env = {
+					url = "https://api.deepseek.com", -- 官方 API 地址
+					api_key = "cmd:echo $DEEPSEEK_API_KEY", -- 建议在系统变量中设置
+				},
+				name = "DeepSeek",
+				schema = {
+					model = {
+						-- 可选：deepseek-chat (V3) 或 deepseek-reasoner (R1)
+						default = "deepseek-chat",
+					},
+					-- 官方 API 建议调低 temperature 以获取更稳定的代码输出
+					temperature = { default = 0.3 },
+					max_tokens = { default = 4096 },
+				},
 			})
 		end,
 	},
